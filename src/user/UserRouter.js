@@ -20,7 +20,7 @@ router.post(
     .bail()
     .custom(async (email) => {
       let user = await findByEmail(email);
-      if (user) throw new Error('email_in_use');
+      if (user) throw new Error('email_inuse');
     }),
   check('password')
     .notEmpty()
@@ -30,7 +30,7 @@ router.post(
     .withMessage('password_size')
     .bail()
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
-    .withMessage('password_constraint'),
+    .withMessage('password_pattern'),
   async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -42,9 +42,9 @@ router.post(
     }
     try {
       await save(req.body);
-      return res.send({ message: req.t('user_created') });
+      return res.send({ message: req.t('user_create_success') });
     } catch (err) {
-      return res.status(502).send(err);
+      return res.status(502).send({ message: req.t(err.message) });
     }
   }
 );

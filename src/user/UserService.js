@@ -3,32 +3,29 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { sendAccountActivation } = require('../email/emailService');
 const sequelize = require('../config/database');
+const EmailException = require('../email/emailException');
 
-function generateToken(length) {
+function randomString(length) {
   return crypto.randomBytes(length).toString('hex').substring(0, length);
 }
 
 exports.save = async (body) => {
-  let hash = await bcrypt.hash(body.password, 10);
-
-  body = { ...body, password: hash };
   const { username, email, password } = body;
+  const hash = await bcrypt.hash(password, 10);
+  const user = {
+    username,
+    email,
+    password: hash,
+    activationToken: randomString(16),
+  };
   const transaction = await sequelize.transaction();
-  let user = await User.create(
-    {
-      username,
-      email,
-      password,
-      activationToken: generateToken(16),
-    },
-    { transaction }
-  );
-  await sendAccountActivation(email, user.activationToken);
+  await User.create(user, { transaction });
   try {
+    await sendAccountActivation(email, user.activationToken);
     await transaction.commit();
-  } catch (error) {
+  } catch (err) {
     await transaction.rollback();
-    throw new Error(error);
+    throw new EmailException();
   }
 };
 
