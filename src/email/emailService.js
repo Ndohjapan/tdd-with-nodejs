@@ -1,15 +1,25 @@
-const { transporter } = require("../config/emailTransporter");
+const { transporter } = require('../config/emailTransporter');
+const nodemailer = require('nodemailer');
 
-exports.sendAccountActivation = async (email, token, happy = "hello world") => {
+exports.sendAccountActivation = async (email, token) => {
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: 'My App <info@my-app.com>',
       to: email,
       subject: 'Account Activation',
-      html: `Token is ${token}`,
+      html: `
+      <div>
+        <b> Please click below link to activate your accunt </b>
+      </div>
+      <div>
+        <a href="localhost:3030/api/1.0/users/token/${token}">Activate</a>
+      </div>
+      Token is ${token}`,
     });
-    return happy
+    if (process.env.NODE_ENV === 'development') {
+      console.log('url: ' + nodemailer.getTestMessageUrl(info));
+    }
   } catch (error) {
-    throw new Error('Error From Inside')
+    throw new Error('Error From Inside');
   }
 };

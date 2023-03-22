@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { save, findByEmail } = require('./UserService');
+const { save, findByEmail, activate } = require('./UserService');
 const { check, validationResult } = require('express-validator');
+const validationException = require('../error/validationException');
 
 router.post(
   '/api/1.0/users',
@@ -31,22 +32,30 @@ router.post(
     .bail()
     .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).*$/)
     .withMessage('password_pattern'),
-  async (req, res) => {
+  async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      const validationErrors = {};
-      errors.array().forEach((error) => {
-        validationErrors[error.param] = req.t(error.msg);
-      });
-      return res.status(400).send({ validationErrors: validationErrors });
+      return next(new validationException(errors))
     }
     try {
       await save(req.body);
       return res.send({ message: req.t('user_create_success') });
     } catch (err) {
-      return res.status(502).send({ message: req.t(err.message) });
+      return next(err)
     }
   }
 );
+
+router.get('/api/1.0/users/token/:token', async (req, res, next) => {
+  try {
+    const token = req.params.token;
+
+    await activate(token);
+
+    return res.send({ message: req.t('account_activation_success') });
+  } catch (error) {
+    next(error)
+  }
+});
 
 module.exports = router;

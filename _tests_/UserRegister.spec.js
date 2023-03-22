@@ -136,17 +136,20 @@ describe('User Registration', () => {
     ${'password'} | ${'lowerandUPPER'} | ${en.password_pattern}
     ${'password'} | ${'lower4nd5667'}  | ${en.password_pattern}
     ${'password'} | ${'UPPER44444'}    | ${en.password_pattern}
-  `('returns $expectedMessage when $field is $value', async ({ field, expectedMessage, value }) => {
-    const user = {
-      username: 'user1',
-      email: 'user1@mail.com',
-      password: 'P4ssword',
-    };
-    user[field] = value;
-    const response = await postUser(user);
-    const body = response.body;
-    expect(body.validationErrors[field]).toBe(expectedMessage);
-  });
+  `(
+    'returns $expectedMessage when $field is $value',
+    async ({ field, expectedMessage, value }) => {
+      const user = {
+        username: 'user1',
+        email: 'user1@mail.com',
+        password: 'P4ssword',
+      };
+      user[field] = value;
+      const response = await postUser(user);
+      const body = response.body;
+      expect(body.validationErrors[field]).toBe(expectedMessage);
+    }
+  );
 
   it(`returns ${en.email_inuse} when same email is already in use`, async () => {
     await User.create({ ...validUser });
@@ -207,6 +210,15 @@ describe('User Registration', () => {
     const users = await User.findAll();
     expect(users.length).toBe(0);
   });
+  it('returns validation failure message in error response body when validation is wrong', async () => {
+    const response = await postUser({
+      username: null,
+      email: 'user1@mail.com',
+      password: 'P4ssword',
+    });
+
+    expect(response.body.message).toBe(en.validation_failure);
+  });
 });
 
 describe('Internationalization', () => {
@@ -257,5 +269,149 @@ describe('Internationalization', () => {
     simulateSmtpFailure = true;
     const response = await postUser({ ...validUser }, { language: 'tr' });
     expect(response.body.message).toBe(tr.email_failure);
+  });
+
+  it('returns validation failure message in error response body when validation is wrong', async () => {
+    const response = await postUser(
+      {
+        username: null,
+        email: 'user1@mail.com',
+        password: 'P4ssword',
+      },
+      { language: 'tr' }
+    );
+
+    expect(response.body.message).toBe(tr.validation_failure);
+  });
+});
+
+describe('Account Activation', () => {
+  it('activate the account when correct is sent', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    users = await User.findAll();
+    expect(users[0].inactive).toBe(false);
+  });
+
+  it('removes token from user table after successful activation', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = users[0].activationToken;
+
+    await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    users = await User.findAll();
+    expect(users[0].activationToken).toBeFalsy();
+  });
+
+  it('does not activate the account when token is wrong', async () => {
+    await postUser();
+    let users = await User.findAll();
+    const token = 'hhjbbi909i0';
+
+    await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    users = await User.findAll();
+    expect(users[0].inactive).toBe(true);
+  });
+
+  it('returns bad request when token is wrong', async () => {
+    await postUser();
+    const token = 'hhjbbi909i0';
+
+    const response = await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    expect(response.status).toBe(400);
+  });
+
+  it.each`
+    language | tokenStatus  | message
+    ${'tr'}  | ${'wrong'}   | ${tr.account_activation_failure}
+    ${'en'}  | ${'wrong'}   | ${en.account_activation_failure}
+    ${'tr'}  | ${'correct'} | ${tr.account_activation_success}
+    ${'en'}  | ${'correct'} | ${en.account_activation_success}
+  `(
+    'return $message when wrong token is $tokenStatus is sent and language is $language',
+    async ({ language, tokenStatus, message }) => {
+      await postUser();
+      let token = 'fnwijnfiewneweuief';
+
+      if (tokenStatus === 'correct') {
+        let users = await User.findAll();
+        token = users[0].activationToken;
+      }
+
+      const response = await await request(app)
+        .get('/api/1.0/users/token/' + token)
+        .set('Accept-Language', language)
+        .send();
+
+      expect(response.body.message).toBe(message);
+    }
+  );
+});
+
+describe('Error Model', () => {
+  it('returns path, timestamp, message and validation in response when there is a validation failure', async () => {
+    const response = await postUser({ ...validUser, username: null });
+    const body = response.body;
+
+    expect(Object.keys(body)).toEqual([
+      'path',
+      'timestamp',
+      'message',
+      'validationErrors',
+    ]);
+  });
+
+  it('returns path, timestamp and message in respons when request fails other than validation fails', async () => {
+    const token = 'hhjbbi909i0';
+
+    const response = await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    const body = response.body;
+
+    expect(Object.keys(body)).toEqual(['path', 'timestamp', 'message']);
+  });
+
+  it('returns path in error body', async () => {
+    const token = 'hhjbbi909i0';
+
+    const response = await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    const body = response.body;
+
+    expect(body.path).toEqual('/api/1.0/users/token/' + token);
+  });
+
+  it('return timestamp in milliseconds within 5 seconds vale inerror body', async () => {
+    const token = 'hhjbbi909i0';
+    const nowInMills = new Date().getTime();
+    const fiveSecondsLater = nowInMills + 5 * 1000;
+
+    const response = await await request(app)
+      .get('/api/1.0/users/token/' + token)
+      .send();
+
+    const body = response.body;
+
+    expect(body.timestamp).toBeGreaterThan(nowInMills);
+    expect(body.timestamp).toBeLessThan(fiveSecondsLater);
   });
 });
