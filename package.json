@@ -5,7 +5,7 @@
   "main": "app.js",
   "scripts": {
     "start": "cross-env NODE_ENV=development nodemon -L index",
-    "test": "cross-env NODE_ENV=test jest --watch",
+    "test": "cross-env NODE_ENV=test jest --watch ",
     "lint": "eslint ."
   },
   "author": "Ndoh Joel",
@@ -19,7 +19,7 @@
     "i18next-fs-backend": "^2.1.1",
     "i18next-http-middleware": "^3.3.0",
     "nodemailer": "^6.9.1",
-    "sequelize": "^6.29.3",
+    "sequelize-typescript": "^2.1.0",
     "sqlite3": "^5.1.6"
   },
   "devDependencies": {

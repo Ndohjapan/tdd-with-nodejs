@@ -1,8 +1,15 @@
 const express = require('express');
 const router = express.Router();
-const { save, findByEmail, activate } = require('./UserService');
+const {
+  save,
+  findByEmail,
+  activate,
+  getUsers,
+  getUser,
+} = require('./UserService');
 const { check, validationResult } = require('express-validator');
 const validationException = require('../error/validationException');
+const { pagination } = require('../middleware/pagination');
 
 router.post(
   '/api/1.0/users',
@@ -35,13 +42,13 @@ router.post(
   async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return next(new validationException(errors))
+      return next(new validationException(errors));
     }
     try {
       await save(req.body);
       return res.send({ message: req.t('user_create_success') });
     } catch (err) {
-      return next(err)
+      return next(err);
     }
   }
 );
@@ -54,7 +61,23 @@ router.get('/api/1.0/users/token/:token', async (req, res, next) => {
 
     return res.send({ message: req.t('account_activation_success') });
   } catch (error) {
-    next(error)
+    next(error);
+  }
+});
+
+router.get('/api/1.0/users', pagination, async (req, res) => {
+  const { size, page } = req.pagination;
+
+  const users = await getUsers(page, size);
+  res.send(users);
+});
+
+router.get('/api/1.0/users/:id', async (req, res, next) => {
+  try {
+    const user = await getUser(req.params.id);
+    return res.send(user);
+  } catch (error) {
+    next(error);
   }
 });
 
