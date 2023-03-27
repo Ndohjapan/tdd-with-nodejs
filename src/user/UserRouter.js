@@ -7,6 +7,7 @@ const {
   getUsers,
   getUser,
   updateUser,
+  deleteUser,
 } = require('./UserService');
 const { check, validationResult } = require('express-validator');
 const validationException = require('../error/validationException');
@@ -102,6 +103,20 @@ router.put(
     }
 
     await updateUser(req.params.id, req.body);
+    return res.send();
+  }
+);
+
+router.delete(
+  '/api/1.0/users/:id',
+  tokenAuthentication,
+  async (req, res, next) => {
+    const authenticatedUser = req.authenticatedUser;
+
+    if (!authenticatedUser || authenticatedUser.id != req.params.id) {
+      return next(new ForbiddenException('unauthroized_user_delete'));
+    }
+    await deleteUser(req.params.id);
     return res.send();
   }
 );

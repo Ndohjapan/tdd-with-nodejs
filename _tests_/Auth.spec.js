@@ -5,6 +5,7 @@ const sequelize = require('../src/config/database');
 const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
+const Token = require('../src/auth/Token');
 
 beforeAll(async () => {
   await sequelize.sync();
@@ -29,6 +30,14 @@ const addUser = async (user = { ...activeUser }) => {
   const hash = await bcrypt.hash(user.password, 10);
   user.password = hash;
   return await User.create(user);
+};
+
+const postLogout = async (options = {}) => {
+  const agent = request(app).post('/api/1.0/logout');
+  if (options.token) {
+    agent.set('Authorization', `Bearer ${options.token}`);
+  }
+  return await agent.send();
 };
 
 const postAuthentication = async (credentials, options = {}) => {
@@ -158,15 +167,39 @@ describe('Authentication', () => {
 
   it('returns 401 when password is not valid ', async () => {
     const response = await postAuthentication({ email: 'hello@mail.com' });
-    
+
     expect(response.status).toBe(401);
   });
-  
-  it('returns token in response body when credentials are correct ', async() => {
+
+  it('returns token in response body when credentials are correct ', async () => {
     await addUser();
-    const response = await postAuthentication({ email: 'user1@mail.com', password: 'Pass4ord' });
+    const response = await postAuthentication({
+      email: 'user1@mail.com',
+      password: 'Pass4ord',
+    });
 
-    expect(response.body.token).not.toBeUndefined()
+    expect(response.body.token).not.toBeUndefined();
+  });
+});
 
-  })
+describe('Logout', () => {
+  it('returns 200 ok when unauthorized request for logout', async () => {
+    const response = await postLogout();
+    expect(response.status).toBe(200);
+  });
+
+  it('removes user token from the database', async () => {
+    await addUser();
+    const response = await postAuthentication({
+      email: 'user1@mail.com',
+      password: 'Pass4ord',
+    });
+
+    const token = response.body.token;
+    await postLogout({ token: token });
+
+    const storedToken = await Token.findOne({ where: { token: token } });
+
+    expect(storedToken).toBeNull();
+  });
 });
