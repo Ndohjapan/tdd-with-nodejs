@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const { sendAccountActivation } = require('../email/emailService');
 const sequelize = require('../config/database');
+const Sequelize = require('sequelize');
 const EmailException = require('../email/emailException');
 const InvalidTokenException = require('./invalidTokenException');
 const userNotFoundException = require('./userNotFoundException');
@@ -43,9 +44,16 @@ exports.activate = async (token) => {
   await user.save();
 };
 
-exports.getUsers = async (page, size = 10) => {
+exports.getUsers = async (page, size = 10, authenticatedUser) => {
+  const id = authenticatedUser ? authenticatedUser.id : 0;
+
   const users = await User.findAndCountAll({
-    where: { inactive: false },
+    where: {
+      inactive: false,
+      id: {
+        [Sequelize.Op.not]: id,
+      },
+    },
     attributes: ['id', 'username', 'email'],
     limit: size,
     offset: page * size,
@@ -68,6 +76,12 @@ exports.getUser = async (id) => {
     throw new userNotFoundException();
   }
   return user;
+};
+
+exports.updateUser = async (id, updateBody) => {
+  const user = await User.findOne({ where: { id } });
+  user.username = updateBody.username;
+  await user.save();
 };
 
 exports.findByEmail = async (email) => {

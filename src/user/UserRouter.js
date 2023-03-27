@@ -6,10 +6,13 @@ const {
   activate,
   getUsers,
   getUser,
+  updateUser,
 } = require('./UserService');
 const { check, validationResult } = require('express-validator');
 const validationException = require('../error/validationException');
 const { pagination } = require('../middleware/pagination');
+const ForbiddenException = require('../error/ForbiddenException');
+const { basicAuthentication } = require('../middleware/basicAuthentication');
 
 router.post(
   '/api/1.0/users',
@@ -53,7 +56,7 @@ router.post(
   }
 );
 
-router.get('/api/1.0/users/token/:token', async (req, res, next) => {
+router.post('/api/1.0/users/token/:token', async (req, res, next) => {
   try {
     const token = req.params.token;
 
@@ -65,10 +68,11 @@ router.get('/api/1.0/users/token/:token', async (req, res, next) => {
   }
 });
 
-router.get('/api/1.0/users', pagination, async (req, res) => {
+router.get('/api/1.0/users', pagination, basicAuthentication, async (req, res) => {
+  const authenticatedUser = req.authenticatedUser
   const { size, page } = req.pagination;
 
-  const users = await getUsers(page, size);
+  const users = await getUsers(page, size, authenticatedUser);
   res.send(users);
 });
 
@@ -80,5 +84,20 @@ router.get('/api/1.0/users/:id', async (req, res, next) => {
     next(error);
   }
 });
+
+router.put(
+  '/api/1.0/users/:id',
+  basicAuthentication,
+  async (req, res, next) => {
+    const authenticatedUser = req.authenticatedUser;
+
+    if (!authenticatedUser || authenticatedUser.id != req.params.id) {
+      return next(new ForbiddenException('unauthroized_user_update'));
+    }
+
+    await updateUser(req.params.id, req.body);
+    return res.send();
+  }
+);
 
 module.exports = router;

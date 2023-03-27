@@ -292,7 +292,7 @@ describe('Account Activation', () => {
     const token = users[0].activationToken;
 
     await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     users = await User.findAll();
@@ -305,7 +305,7 @@ describe('Account Activation', () => {
     const token = users[0].activationToken;
 
     await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     users = await User.findAll();
@@ -318,7 +318,7 @@ describe('Account Activation', () => {
     const token = 'hhjbbi909i0';
 
     await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     users = await User.findAll();
@@ -330,7 +330,7 @@ describe('Account Activation', () => {
     const token = 'hhjbbi909i0';
 
     const response = await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     expect(response.status).toBe(400);
@@ -354,7 +354,7 @@ describe('Account Activation', () => {
       }
 
       const response = await await request(app)
-        .get('/api/1.0/users/token/' + token)
+        .post('/api/1.0/users/token/' + token)
         .set('Accept-Language', language)
         .send();
 
@@ -380,7 +380,7 @@ describe('Error Model', () => {
     const token = 'hhjbbi909i0';
 
     const response = await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     const body = response.body;
@@ -392,7 +392,7 @@ describe('Error Model', () => {
     const token = 'hhjbbi909i0';
 
     const response = await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     const body = response.body;
@@ -406,7 +406,7 @@ describe('Error Model', () => {
     const fiveSecondsLater = nowInMills + 5 * 1000;
 
     const response = await await request(app)
-      .get('/api/1.0/users/token/' + token)
+      .post('/api/1.0/users/token/' + token)
       .send();
 
     const body = response.body;

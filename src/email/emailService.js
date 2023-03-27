@@ -12,7 +12,7 @@ exports.sendAccountActivation = async (email, token) => {
         <b> Please click below link to activate your accunt </b>
       </div>
       <div>
-        <a href="localhost:3030/api/1.0/users/token/${token}">Activate</a>
+        <a href="http://localhost:8080/#/login?token=${token}">Activate</a>
       </div>
       Token is ${token}`,
     });
