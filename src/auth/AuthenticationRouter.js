@@ -5,6 +5,7 @@ const AuthenticationException = require('./AuthenticationException');
 const bcrypt = require('bcrypt');
 const ForbiddenException = require('../error/ForbiddenException');
 const { check, validationResult } = require('express-validator');
+const { createToken } = require('./TokenService');
 
 router.post(
   '/api/1.0/auth',
@@ -29,9 +30,13 @@ router.post(
     if (user.inactive) {
       return next(new ForbiddenException());
     }
+
+    const token = createToken(user)
+
     res.send({
       id: user.id,
       username: user.username,
+      token,
     });
   }
 );
