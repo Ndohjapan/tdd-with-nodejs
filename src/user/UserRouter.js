@@ -8,13 +8,12 @@ const {
   getUser,
   updateUser,
   deleteUser,
+  passwordResetRequest,
 } = require('./UserService');
 const { check, validationResult } = require('express-validator');
 const validationException = require('../error/validationException');
 const { pagination } = require('../middleware/pagination');
 const ForbiddenException = require('../error/ForbiddenException');
-const { basicAuthentication } = require('../middleware/basicAuthentication');
-const { tokenAuthentication } = require('../middleware/tokenAuthentication');
 
 router.post(
   '/api/1.0/users',
@@ -47,7 +46,7 @@ router.post(
   async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return next(new validationException(errors));
+      return next(new validationException(errors.array()));
     }
     try {
       await save(req.body);
@@ -70,18 +69,13 @@ router.post('/api/1.0/users/token/:token', async (req, res, next) => {
   }
 });
 
-router.get(
-  '/api/1.0/users',
-  pagination,
-  tokenAuthentication,
-  async (req, res) => {
-    const authenticatedUser = req.authenticatedUser;
-    const { size, page } = req.pagination;
+router.get('/api/1.0/users', pagination, async (req, res) => {
+  const authenticatedUser = req.authenticatedUser;
+  const { size, page } = req.pagination;
 
-    const users = await getUsers(page, size, authenticatedUser);
-    res.send(users);
-  }
-);
+  const users = await getUsers(page, size, authenticatedUser);
+  res.send(users);
+});
 
 router.get('/api/1.0/users/:id', async (req, res, next) => {
   try {
@@ -92,32 +86,41 @@ router.get('/api/1.0/users/:id', async (req, res, next) => {
   }
 });
 
-router.put(
-  '/api/1.0/users/:id',
-  tokenAuthentication,
-  async (req, res, next) => {
-    const authenticatedUser = req.authenticatedUser;
+router.put('/api/1.0/users/:id', async (req, res, next) => {
+  const authenticatedUser = req.authenticatedUser;
 
-    if (!authenticatedUser || authenticatedUser.id != req.params.id) {
-      return next(new ForbiddenException('unauthroized_user_update'));
-    }
-
-    await updateUser(req.params.id, req.body);
-    return res.send();
+  if (!authenticatedUser || authenticatedUser.id != req.params.id) {
+    return next(new ForbiddenException('unauthroized_user_update'));
   }
-);
 
-router.delete(
-  '/api/1.0/users/:id',
-  tokenAuthentication,
+  await updateUser(req.params.id, req.body);
+  return res.send();
+});
+
+router.delete('/api/1.0/users/:id', async (req, res, next) => {
+  const authenticatedUser = req.authenticatedUser;
+
+  if (!authenticatedUser || authenticatedUser.id != req.params.id) {
+    return next(new ForbiddenException('unauthroized_user_delete'));
+  }
+  await deleteUser(req.params.id);
+  return res.send();
+});
+
+router.post(
+  '/api/1.0/password-reset',
+  check('email').isEmail().withMessage('email_invalid'),
   async (req, res, next) => {
-    const authenticatedUser = req.authenticatedUser;
-
-    if (!authenticatedUser || authenticatedUser.id != req.params.id) {
-      return next(new ForbiddenException('unauthroized_user_delete'));
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new validationException(errors.array()));
     }
-    await deleteUser(req.params.id);
-    return res.send();
+    try {
+      await passwordResetRequest(req.body.email);
+      return res.send({ message: req.t('password_reset_request_success') });
+    } catch (error) {
+      return next(error);
+    }
   }
 );
 

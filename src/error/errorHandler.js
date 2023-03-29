@@ -4,7 +4,7 @@ module.exports = (err, req, res, next) => {
   let validationErrors
   if (errors) {
     validationErrors = {}
-    errors.array().forEach((error) => {
+    errors.forEach((error) => {
       validationErrors[error.param] = req.t(error.msg);
     });
   }

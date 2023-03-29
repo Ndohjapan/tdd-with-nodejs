@@ -11,7 +11,6 @@ let lastMail, server;
 let simulateSmtpFailure = false;
 
 beforeAll(async () => {
-  await sequelize.sync();
   server = new SMTPServer({
     authOptional: true,
     onData(stream, session, callback) {
@@ -30,9 +29,10 @@ beforeAll(async () => {
       });
     },
   });
-
+  
   await server.listen(8587, 'localhost');
-
+  
+  await sequelize.sync();
   jest.setTimeout(20000);
 });
 
