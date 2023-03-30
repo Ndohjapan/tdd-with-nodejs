@@ -39,5 +39,9 @@ exports.scheduleCleanup = () => {
         },
       },
     });
-  }, 60*60*1000);
+  }, 60 * 60 * 1000);
+};
+
+exports.clearTokens = async (userId) => {
+  await Token.destroy({ where: { userId } });
 };

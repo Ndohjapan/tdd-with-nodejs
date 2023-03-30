@@ -1,6 +1,9 @@
 const User = require('./User');
 const bcrypt = require('bcrypt');
-const { sendAccountActivation } = require('../email/emailService');
+const {
+  sendAccountActivation,
+  sendPasswordReset,
+} = require('../email/emailService');
 const sequelize = require('../config/database');
 const Sequelize = require('sequelize');
 const EmailException = require('../email/emailException');
@@ -8,6 +11,7 @@ const InvalidTokenException = require('./invalidTokenException');
 const { randomString } = require('../shared/generator');
 const Token = require('../auth/Token');
 const NotFoundException = require('../error/NotFoundException');
+const { clearTokens } = require('../auth/TokenService');
 
 const save = async (body) => {
   const { username, email, password } = body;
@@ -93,13 +97,35 @@ const findByEmail = async (email) => {
 async function deleteTokensOfUser(userId) {
   await Token.destroy({ where: { userId } });
 }
+
 const passwordResetRequest = async (email) => {
   const user = await findByEmail(email);
   if (!user) {
-    throw new NotFoundException('email_not_inuse')
+    throw new NotFoundException('email_not_inuse');
   }
-  user.passwordResetToken = randomString(16)
-  await user.save()
+  user.passwordResetToken = randomString(16);
+  await user.save();
+  try {
+    await sendPasswordReset(email, user.passwordResetToken);
+  } catch (error) {
+    throw new EmailException();
+  }
+};
+
+const updatePassword = async (updateRequest) => {
+  const user = await findByPasswordResetToken(updateRequest.passwordResetToken);
+  const hash = await bcrypt.hash(updateRequest.password, 10);
+
+  user.password = hash;
+  user.passwordResetToken = null;
+  user.inactive = false;
+  user.activationToken = null;
+  await user.save();
+  await clearTokens(user.id);
+};
+
+const findByPasswordResetToken = (token) => {
+  return User.findOne({ where: { passwordResetToken: token } });
 };
 
 module.exports = {
@@ -110,5 +136,7 @@ module.exports = {
   updateUser,
   deleteUser,
   findByEmail,
-  passwordResetRequest
+  passwordResetRequest,
+  updatePassword,
+  findByPasswordResetToken,
 };
