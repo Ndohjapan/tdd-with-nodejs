@@ -5,6 +5,8 @@ const sequelize = require('../src/config/database');
 const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
+const attributes = ['id', 'username', 'email', 'image']
+const attributeMessage = 'only id, username, email and image'
 
 beforeAll(async () => {
   await sequelize.sync();
@@ -82,12 +84,12 @@ describe('Listing Users', () => {
     expect(response.body.content.length).toBe(6);
   });
 
-  it('returns only id, username and email in the content array for each user', async () => {
+  it(`returns ${attributeMessage} in the content array for each user`, async () => {
     await addUsers(11);
     const response = await getUsers();
     const user = response.body.content[0];
     expect(response.body.content.length).toBe(10);
-    expect(Object.keys(user)).toEqual(['id', 'username', 'email']);
+    expect(Object.keys(user)).toEqual(attributes);
   });
 
   it('return 2 as total pages when there are 15 active and 7 inactive users', async () => {
@@ -192,7 +194,7 @@ describe('Get Users', () => {
     expect(response.status).toBe(200);
   });
 
-  it('returns id, username and email in response body  when an active user exists', async () => {
+  it(`returns ${attributeMessage} in response body  when an active user exists`, async () => {
     const user = await User.create({
       username: 'user1',
       email: 'user1@mail.com',
@@ -200,7 +202,7 @@ describe('Get Users', () => {
     });
 
     const response = await getUser(user.id);
-    expect(Object.keys(response.body)).toEqual(['id', 'username', 'email']);
+    expect(Object.keys(response.body)).toEqual(attributes);
   });
 
   it('returns 404 when the user is inactive', async () => {

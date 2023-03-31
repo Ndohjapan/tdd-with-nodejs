@@ -88,16 +88,44 @@ router.get('/api/1.0/users/:id', async (req, res, next) => {
   }
 });
 
-router.put('/api/1.0/users/:id', async (req, res, next) => {
-  const authenticatedUser = req.authenticatedUser;
+router.put(
+  '/api/1.0/users/:id',
+  check('username')
+    .notEmpty()
+    .withMessage('username_null')
+    .bail()
+    .isLength({ min: 4, max: 32 })
+    .withMessage('username_size'),
+  check('image').custom(async (imageAsBase64String) => {
+    if (!imageAsBase64String) {
+      return true;
+    }
+    const buffer = Buffer.from(imageAsBase64String, 'base64');
+    if (buffer.length > 2 * 1024 * 1024) {
+      throw new Error('profile_image_size');
+    }
 
-  if (!authenticatedUser || authenticatedUser.id != req.params.id) {
-    return next(new ForbiddenException('unauthroized_user_update'));
+    // Check the file type
+    // const type = await fileType.fileTypeFromBuffer(buffer);
+    // console.log(type)
+    return true;
+  }),
+  async (req, res, next) => {
+    const authenticatedUser = req.authenticatedUser;
+
+    if (!authenticatedUser || authenticatedUser.id != req.params.id) {
+      return next(new ForbiddenException('unauthroized_user_update'));
+    }
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return next(new validationException(errors.array()));
+    }
+
+    const user = await updateUser(req.params.id, req.body);
+    return res.send(user);
   }
-
-  await updateUser(req.params.id, req.body);
-  return res.send();
-});
+);
 
 router.delete('/api/1.0/users/:id', async (req, res, next) => {
   const authenticatedUser = req.authenticatedUser;
@@ -127,7 +155,7 @@ router.post(
 );
 
 const passwordResetTokenValidator = async (req, res, next) => {
-  const user = await findByPasswordResetToken(req.body.passwordResetToken)
+  const user = await findByPasswordResetToken(req.body.passwordResetToken);
 
   if (!user) {
     return next(new ForbiddenException('unauthroized_password_reset'));

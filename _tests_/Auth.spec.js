@@ -6,6 +6,9 @@ const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
 const Token = require('../src/auth/Token');
+const attributeMessage = 'only user id, username, image and token'
+const attributes = ['id', 'username', 'image', 'token']
+
 
 beforeAll(async () => {
   await sequelize.sync();
@@ -58,7 +61,7 @@ describe('Authentication', () => {
     expect(response.status).toBe(200);
   });
 
-  it('returns only user id and username and token when login success', async () => {
+  it(`returns ${attributeMessage} when login success`, async () => {
     const user = await addUser();
     const response = await postAuthentication({
       email: 'user1@mail.com',
@@ -66,7 +69,7 @@ describe('Authentication', () => {
     });
     expect(response.body.id).toBe(user.id);
     expect(response.body.username).toBe(user.username);
-    expect(Object.keys(response.body)).toEqual(['id', 'username', 'token']);
+    expect(Object.keys(response.body)).toEqual(attributes);
   });
 
   it('returns 401 when the user does not exist', async () => {

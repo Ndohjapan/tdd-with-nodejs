@@ -12,6 +12,9 @@ const { randomString } = require('../shared/generator');
 const Token = require('../auth/Token');
 const NotFoundException = require('../error/NotFoundException');
 const { clearTokens } = require('../auth/TokenService');
+const FileService = require('../file/FileService');
+
+const attributes = ['id', 'username', 'email', 'image'];
 
 const save = async (body) => {
   const { username, email, password } = body;
@@ -55,7 +58,7 @@ const getUsers = async (page, size = 10, authenticatedUser) => {
         [Sequelize.Op.not]: id,
       },
     },
-    attributes: ['id', 'username', 'email'],
+    attributes,
     limit: size,
     offset: page * size,
   });
@@ -70,7 +73,7 @@ const getUsers = async (page, size = 10, authenticatedUser) => {
 const getUser = async (id) => {
   const user = await User.findOne({
     where: { id: id, inactive: false },
-    attributes: ['id', 'username', 'email'],
+    attributes,
   });
 
   if (!user) {
@@ -82,7 +85,19 @@ const getUser = async (id) => {
 const updateUser = async (id, updateBody) => {
   const user = await User.findOne({ where: { id } });
   user.username = updateBody.username;
+  if (updateBody.image) {
+    if(user.image){
+      await FileService.deleteproFileImage(user.image);
+    }
+    user.image = await FileService.saveProfileImage(updateBody.image);
+  }
   await user.save();
+  return {
+    id,
+    username: user.username,
+    email: user.email,
+    image: user.image,
+  };
 };
 
 const deleteUser = async (id) => {

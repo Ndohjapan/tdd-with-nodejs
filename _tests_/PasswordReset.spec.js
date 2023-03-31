@@ -322,7 +322,7 @@ describe('Password Update', () => {
       password: 'N3w-password',
       passwordResetToken: 'test-token',
     });
-    const tokens = await Token.findAll({where: {userId: user.id}})
+    const tokens = await Token.findAll({ where: { userId: user.id } });
     expect(tokens.length).toBe(0);
   });
 });
