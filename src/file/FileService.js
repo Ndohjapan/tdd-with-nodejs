@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const config = require('config');
+const fileType = require('file-type');
 const { randomString } = require('../shared/generator');
 
 const { uploadDir, profileDir } = config;
@@ -25,4 +26,15 @@ exports.saveProfileImage = async (base64File) => {
 exports.deleteproFileImage = async (fileName) => {
   const filePath = path.join(profileFolder, fileName);
   await fs.promises.unlink(filePath);
+};
+
+exports.isLessThann2MB = (buffer) => {
+  return buffer.length < 2 * 1024 * 1024;
+};
+
+exports.isSupportedFileType = async (buffer) => {
+  const type = await fileType.fromBuffer(buffer);
+  return !type
+    ? false
+    : type.mime === 'image/png' || type.mime === 'image/jpeg';
 };
