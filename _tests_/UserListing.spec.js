@@ -5,11 +5,13 @@ const sequelize = require('../src/config/database');
 const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
-const attributes = ['id', 'username', 'email', 'image']
-const attributeMessage = 'only id, username, email and image'
+const attributes = ['id', 'username', 'email', 'image'];
+const attributeMessage = 'only id, username, email and image';
 
 beforeAll(async () => {
-  await sequelize.sync();
+  if (process.env.NODE_ENV === 'test') {
+    await sequelize.sync();
+  }
 });
 
 beforeEach(async () => {
@@ -146,7 +148,7 @@ describe('Listing Users', () => {
     const token = await auth({
       auth: { email: 'user1@mail.com', password: 'P4ssword' },
     });
-    const response = await getUsers({token});
+    const response = await getUsers({ token });
 
     expect(response.body.totalPages).toBe(1);
   });

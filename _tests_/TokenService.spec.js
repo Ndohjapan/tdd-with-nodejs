@@ -3,7 +3,9 @@ const { scheduleCleanup } = require('../src/auth/TokenService');
 const sequelize = require('../src/config/database');
 
 beforeAll(async () => {
-  await sequelize.sync();
+  if (process.env.NODE_ENV === 'test') {
+    await sequelize.sync();
+  }
 });
 
 beforeEach(async () => {
@@ -12,7 +14,7 @@ beforeEach(async () => {
 
 describe('Scheduled Schedule cleanup', () => {
   it('clears the expired token with scheduled task', async () => {
-    jest.useFakeTimers()
+    jest.useFakeTimers();
     const token = 'test-token';
     const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000);
     await Token.create({
@@ -21,7 +23,7 @@ describe('Scheduled Schedule cleanup', () => {
     });
 
     await scheduleCleanup();
-    jest.advanceTimersByTime(60 * 60 *1000 + 5000)
+    jest.advanceTimersByTime(60 * 60 * 1000 + 5000);
     const tokenInDB = await Token.findOne({ where: { token } });
     expect(tokenInDB).toBeNull();
   });

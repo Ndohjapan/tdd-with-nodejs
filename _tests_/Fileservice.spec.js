@@ -1,9 +1,9 @@
 const FileService = require('../src/file/FileService');
 const fs = require('fs');
-const path = require('path')
-const config = require('config')
+const path = require('path');
+const config = require('config');
 
-const {uploadDir, profileDir} = config
+const { uploadDir, profileDir } = config;
 
 describe('createFolder', () => {
   it('create upload folder', () => {
@@ -14,7 +14,7 @@ describe('createFolder', () => {
 
   it('creates profile folder under upload folder', () => {
     FileService.createFolder();
-    const profileFolder = path.join('.', uploadDir, profileDir)
-    expect(fs.existsSync(profileFolder)).toBe(true)
-  })
+    const profileFolder = path.join('.', uploadDir, profileDir);
+    expect(fs.existsSync(profileFolder)).toBe(true);
+  });
 });

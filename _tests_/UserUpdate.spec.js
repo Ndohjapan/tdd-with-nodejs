@@ -12,7 +12,9 @@ const { uploadDir, profileDir } = config;
 const profileDirectory = path.join('.', uploadDir, profileDir);
 
 beforeAll(async () => {
-  await sequelize.sync();
+  if (process.env.NODE_ENV === 'test') {
+    await sequelize.sync();
+  }
 });
 
 beforeEach(async () => {
@@ -337,17 +339,17 @@ describe('User Update', () => {
     ${'test-txt.txt'} | ${'tr'}  | ${tr.unsupported_image_file}
     ${'test-txt.txt'} | ${'en'}  | ${en.unsupported_image_file}
   `(
-    'returns $message when uploading $file as image when language is $language', async({file, language, message}) => {
+    'returns $message when uploading $file as image when language is $language',
+    async ({ file, language, message }) => {
       const fileInBase64 = readFileAsBase64(file);
       const savedUser = await addUser();
       const updateBody = { username: 'user1-updated', image: fileInBase64 };
       const response = await putUser(savedUser.id, updateBody, {
         auth: { email: savedUser.email, password: 'P4ssword' },
-        language
+        language,
       });
 
       expect(response.body.validationErrors.image).toBe(message);
-
     }
   );
 });

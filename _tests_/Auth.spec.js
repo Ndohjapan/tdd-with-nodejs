@@ -6,12 +6,13 @@ const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
 const Token = require('../src/auth/Token');
-const attributeMessage = 'only user id, username, image and token'
-const attributes = ['id', 'username', 'image', 'token']
-
+const attributeMessage = 'only user id, username, image and token';
+const attributes = ['id', 'username', 'image', 'token'];
 
 beforeAll(async () => {
-  await sequelize.sync();
+  if (process.env.NODE_ENV === 'test') {
+    await sequelize.sync();
+  }
 });
 
 beforeEach(async () => {
@@ -270,7 +271,9 @@ describe('Token Expiration', () => {
 
     const rightBeforeSendingRequest = new Date();
 
-    await request(app).get('/api/1.0/users/5').set('Authorization', `Bearer ${token}`)
+    await request(app)
+      .get('/api/1.0/users/5')
+      .set('Authorization', `Bearer ${token}`);
 
     const tokenInDB = await Token.findOne({ where: { token } });
     expect(tokenInDB.lastUsedAt.getTime()).toBeGreaterThan(
