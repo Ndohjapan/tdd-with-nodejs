@@ -21,7 +21,7 @@ module.exports = {
 
     await queryInterface.bulkInsert('users', users, {});
   },
-  
+
   // eslint-disable-next-line no-unused-vars
   async down(queryInterface, Sequelize) {
     await queryInterface.bulkDelete('users', null, {});

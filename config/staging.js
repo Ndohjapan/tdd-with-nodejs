@@ -2,9 +2,9 @@ module.exports = {
   database: {
     database: 'hoaxify',
     username: 'my-db-user',
-    password: 'db-pass',
+    password: 'db-p4ss',
     dialect: 'sqlite',
-    storage: ':memory:',
+    storage: './staging.sqlite',
     logging: false,
   },
   mail: {
@@ -14,6 +14,6 @@ module.exports = {
       rejectUnauthorized: false,
     },
   },
-  uploadDir: 'uploads-test',
-  profileDir: 'profile'
+  uploadDir: 'uploads-staging',
+  profileDir: 'profile',
 };

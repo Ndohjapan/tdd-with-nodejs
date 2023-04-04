@@ -7,7 +7,7 @@
     "start:dev": "cross-env NODE_ENV=development npm run migrate && cross-env NODE_ENV=development nodemon -L index",
     "start": "cross-env NODE_ENV=production npm run migrate && cross-env NODE_ENV=production node index",
     "test": "cross-env NODE_ENV=test jest --watch && cross-env NODE_ENV=test npm run clean-up",
-    "test:staging": "cross-env NODE_ENV=staging npm run migrate && cross-env NODE_ENV=staging jest --all --runInBand --forceExit && cross-env NODE_ENV=staging npm run clean-up",
+    "test:staging": "cross-env NODE_ENV=staging npm run migrate && cross-env NODE_ENV=staging jest --all --watch --runInBand --forceExit && cross-env NODE_ENV=staging npm run clean-up",
     "clean-up": "node test-cleanup",
     "lint": "eslint .",
     "migrate": "sequelize-cli db:migrate"
