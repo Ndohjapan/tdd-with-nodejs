@@ -1,9 +1,9 @@
 // eslint-disable-next-line no-unused-vars
 module.exports = (err, req, res, next) => {
   let errors = err.errors;
-  let validationErrors
+  let validationErrors;
   if (errors) {
-    validationErrors = {}
+    validationErrors = {};
     errors.forEach((error) => {
       validationErrors[error.param] = req.t(error.msg);
     });

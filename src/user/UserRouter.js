@@ -89,7 +89,6 @@ router.get('/api/1.0/users/:id', async (req, res, next) => {
   }
 });
 
-
 router.put(
   '/api/1.0/users/:id',
   check('username')
@@ -108,7 +107,7 @@ router.put(
     }
 
     // Check the file type
-    const supportedType = await isSupportedFileType(buffer)
+    const supportedType = await isSupportedFileType(buffer);
 
     if (!supportedType) {
       throw new Error('unsupported_image_file');
