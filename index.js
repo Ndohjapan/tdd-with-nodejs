@@ -11,8 +11,6 @@ const port = process.env.PORT || 3030;
 
 app.listen(port, () => {
   logger.info(
-    'app is running on ' +
-      port +
-      ` Version: ${process.env.npm_package_version}`
+    'app is running on ' + port + ` Version: ${process.env.npm_package_version}`
   );
 });
