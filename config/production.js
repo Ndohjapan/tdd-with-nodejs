@@ -1,14 +1,13 @@
 module.exports = {
   database: {
     database: 'hoaxify',
-    username: 'postgres',
-    password: '12345678',
-    dialect: 'postgres',
-    uri: 'postgresql://postgres:AOJ27X6e1KYN7wlr0aEw@containers-us-west-118.railway.app:6491/railway',
+    username: 'my-db-user',
+    password: 'db-pass',
+    dialect: 'sqlite',
+    storage: './database.sqlite',
     logging: false,
   },
   mail: {
-    // service: 'Postmark',
     host: 'smtp.ethereal.email',
     port: 587,
     auth: {
