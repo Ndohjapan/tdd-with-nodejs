@@ -9,7 +9,7 @@ const profileFolder = path.join('.', uploadDir, profileDir);
 
 describe('Profile Images', () => {
   const copyFile = () => {
-    const filePath = path.join('.', '_tests_', 'resources', 'test-png.png');
+    const filePath = path.join('.', '__tests__', 'resources', 'test-png.png');
     const storedFileName = 'test-file';
     const targetPath = path.join(profileFolder, storedFileName);
     fs.copyFileSync(filePath, targetPath);

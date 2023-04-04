@@ -1,5 +1,6 @@
 const { transporter } = require('../config/emailTransporter');
 const nodemailer = require('nodemailer');
+const logger = require('../shared/logger');
 
 exports.sendAccountActivation = async (email, token) => {
   try {
@@ -16,9 +17,8 @@ exports.sendAccountActivation = async (email, token) => {
       </div>
       Token is ${token}`,
     });
-    if (process.env.NODE_ENV === 'development') {
-      console.log('url: ' + nodemailer.getTestMessageUrl(info));
-    }
+
+    logger.info('url: ' + nodemailer.getTestMessageUrl(info));
   } catch (error) {
     throw new Error('Error From Inside');
   }
@@ -27,7 +27,7 @@ exports.sendAccountActivation = async (email, token) => {
 exports.sendPasswordReset = async (email, token) => {
   try {
     const info = await transporter.sendMail({
-      from: 'My App <info@my-app.com>',
+      from: '',
       to: email,
       subject: 'Password Reset',
       html: `
@@ -39,9 +39,7 @@ exports.sendPasswordReset = async (email, token) => {
       </div>
       Token is ${token}`,
     });
-    if (process.env.NODE_ENV === 'development') {
-      console.log('url: ' + nodemailer.getTestMessageUrl(info));
-    }
+    logger.info('url: ' + nodemailer.getTestMessageUrl(info));
   } catch (error) {
     throw new Error('Error From Inside');
   }

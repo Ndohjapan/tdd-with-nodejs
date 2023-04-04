@@ -22,7 +22,7 @@ beforeEach(async () => {
 });
 
 const readFileAsBase64 = (file = 'test-png.png') => {
-  const filePath = path.join('.', '_tests_', 'resources', file);
+  const filePath = path.join('.', '__tests__', 'resources', file);
   return fs.readFileSync(filePath, { encoding: 'base64' });
 };
 
@@ -152,7 +152,7 @@ describe('User Update', () => {
   });
 
   it('saves the user image when the update conatains image as base64', async () => {
-    const filePath = path.join('.', '_tests_', 'resources', 'test-png.png');
+    const filePath = path.join('.', '__tests__', 'resources', 'test-png.png');
     const fileInBase64 = fs.readFileSync(filePath, { encoding: 'base64' });
     const savedUser = await addUser();
     const validUpdate = { username: 'user1-updated', image: fileInBase64 };
