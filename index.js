@@ -7,7 +7,7 @@ sequelize.sync();
 
 scheduleCleanup();
 
-const port = process.env.PORT || 3030;
+const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
   logger.info(
