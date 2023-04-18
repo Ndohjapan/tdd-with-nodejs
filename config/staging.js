@@ -1,10 +1,10 @@
 module.exports = {
   database: {
     database: 'hoaxify',
-    username: 'postgres',
-    password: '12345678',
-    dialect: 'postgres',
-    host: 'localhost',
+    username: 'my-db-user',
+    password: 'db-pass',
+    dialect: 'sqlite',
+    storage: './staging.sqlite',
     logging: false,
   },
   mail: {
