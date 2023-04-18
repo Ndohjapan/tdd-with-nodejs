@@ -9,7 +9,6 @@ let sequelize;
 console.log(dbConfig.uri);
 
 if (!dbConfig.uri) {
-  console.log('I do not have the uri ' + dbConfig.uri);
   logger.info(dbConfig.uri);
   sequelize = new Sequelize(
     dbConfig.database,
@@ -22,7 +21,6 @@ if (!dbConfig.uri) {
     }
   );
 } else {
-  console.log('I have the uri ' + dbConfig.uri);
   sequelize = new Sequelize(dbConfig.uri);
 }
 
