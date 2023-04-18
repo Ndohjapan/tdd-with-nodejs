@@ -6,7 +6,6 @@ const dbConfig = config.get('database');
 
 let sequelize;
 
-console.log(dbConfig.uri);
 
 if (!dbConfig.uri) {
   logger.info(dbConfig.uri);
