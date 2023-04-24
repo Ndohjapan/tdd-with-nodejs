@@ -1,11 +1,11 @@
 const Sequelize = require('sequelize');
 const config = require('config');
 const logger = require('../shared/logger');
+require('pg').defaults.parseInt8 = true;
 
 const dbConfig = config.get('database');
 
 let sequelize;
-
 
 if (!dbConfig.uri) {
   logger.info(dbConfig.uri);

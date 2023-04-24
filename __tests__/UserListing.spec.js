@@ -22,6 +22,8 @@ afterAll(async () => {
   jest.setTimeout(5000);
 });
 
+const credentials = { email: 'user1@mail.com', password: 'P4ssword' }
+
 const auth = async (options = {}) => {
   let token;
   if (options.auth) {
@@ -146,7 +148,7 @@ describe('Listing Users', () => {
   it('returbs user page without logged in user when request has a valid authorization', async () => {
     await addUsers(11);
     const token = await auth({
-      auth: { email: 'user1@mail.com', password: 'P4ssword' },
+      auth: credentials
     });
     const response = await getUsers({ token });
 

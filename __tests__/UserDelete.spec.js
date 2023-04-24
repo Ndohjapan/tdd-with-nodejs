@@ -6,6 +6,7 @@ const tr = require('../locales/tr/translation.json');
 const en = require('../locales/en/translation.json');
 const bcrypt = require('bcrypt');
 const Token = require('../src/auth/Token');
+const Hoax = require('../src/hoax/Hoax');
 
 beforeAll(async () => {
   if (process.env.NODE_ENV === 'test') {
@@ -23,6 +24,8 @@ const activeUser = {
   password: 'P4ssword',
   inactive: false,
 };
+
+const credentials = { email: 'user1@mail.com', password: 'P4ssword' };
 
 const addUser = async (user = { ...activeUser }) => {
   const hash = await bcrypt.hash(user.password, 10);
@@ -173,5 +176,20 @@ describe('User Delete', () => {
 
     const inDBUser = await Token.findOne({ where: { token: token2 } });
     expect(inDBUser).toBeNull();
+  });
+
+  it('deletes hoax from database when delete user request sent from authorized user', async () => {
+    const savedUser = await addUser();
+    const token = await auth({ auth: credentials });
+
+    await request(app)
+      .post('/api/1.0/hoaxes')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ content: 'Hoax content' });
+
+    await deleteUser(savedUser.id, { token: token });
+
+    const hoaxes = await Hoax.findAll();
+    expect(hoaxes.length).toBe(0);
   });
 });

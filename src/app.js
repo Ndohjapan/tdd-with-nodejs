@@ -1,6 +1,7 @@
 const express = require('express');
 const userRouter = require('./user/UserRouter');
 const authRouter = require('./auth/AuthenticationRouter');
+const hoaxRouter = require('./hoax/HoaxRouter');
 const i18next = require('i18next');
 const Backend = require('i18next-fs-backend');
 const middleware = require('i18next-http-middleware');
@@ -49,6 +50,8 @@ app.use(tokenAuthentication);
 app.use(userRouter);
 
 app.use(authRouter);
+
+app.use(hoaxRouter);
 
 app.use(errorHandler);
 

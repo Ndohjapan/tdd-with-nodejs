@@ -31,7 +31,7 @@ router.post(
       return next(new ForbiddenException());
     }
 
-    const token = await createToken(user)
+    const token = await createToken(user);
 
     res.send({
       id: user.id,
@@ -42,14 +42,15 @@ router.post(
   }
 );
 
-router.post('/api/1.0/logout', async(req, res, next) => {
+// eslint-disable-next-line no-unused-vars
+router.post('/api/1.0/logout', async (req, res, next) => {
   const authorization = req.headers.authorization;
   if (authorization) {
     const token = authorization.substring(7);
 
-    await deleteToken(token)
+    await deleteToken(token);
   }
-  res.send()
-})
+  res.send();
+});
 
 module.exports = router;
