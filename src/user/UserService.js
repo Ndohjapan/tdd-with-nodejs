@@ -9,10 +9,11 @@ const Sequelize = require('sequelize');
 const EmailException = require('../email/emailException');
 const InvalidTokenException = require('./invalidTokenException');
 const { randomString } = require('../shared/generator');
-const Token = require('../auth/Token');
 const NotFoundException = require('../error/NotFoundException');
 const { clearTokens } = require('../auth/TokenService');
 const FileService = require('../file/FileService');
+const FileAttachment = require('../file/FileAttachment');
+const Hoax = require('../hoax/Hoax');
 
 const attributes = ['id', 'username', 'email', 'image'];
 
@@ -101,17 +102,38 @@ const updateUser = async (id, updateBody) => {
 };
 
 const deleteUser = async (id) => {
-  await User.destroy({ where: { id } });
-  await deleteTokensOfUser(id);
+  const user = await User.findOne({ where: { id: id } });
+
+  await deleteUserFiles(user);
+
+  await user.destroy();
 };
+
+const deleteUserFiles = async (user) => {
+  if (user.image) {
+    await FileService.deleteproFileImage(user.image);
+  }
+  const attachments = await FileAttachment.findAll({
+    attributes: ['filename'],
+    include: {
+      model: Hoax,
+      where: {
+        userId: user.id,
+      },
+    },
+  });
+  if (attachments.length === 0) {
+    return;
+  }
+  for (let attachment of attachments) {
+    await FileService.deleteAttachments(attachment.getDataValue('filename'));
+  }
+};
+
 
 const findByEmail = async (email) => {
   return await User.findOne({ where: { email: email } });
 };
-
-async function deleteTokensOfUser(userId) {
-  await Token.destroy({ where: { userId } });
-}
 
 const passwordResetRequest = async (email) => {
   const user = await findByEmail(email);

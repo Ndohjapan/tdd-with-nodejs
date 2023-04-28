@@ -7,7 +7,7 @@
     "start:dev": "cross-env NODE_ENV=development npm run migrate && cross-env NODE_ENV=development nodemon -L index",
     "start": "cross-env NODE_ENV=production npm run migrate && cross-env NODE_ENV=production node index",
     "test": "cross-env NODE_ENV=test jest --watch && cross-env NODE_ENV=test npm run clean-up",
-    "test:staging": "cross-env NODE_ENV=staging npm run migrate && cross-env NODE_ENV=staging jest --runInBand --detectOpenHandles --forceExit && cross-env NODE_ENV=staging npm run clean-up",
+    "test:staging": "cross-env NODE_ENV=staging npm run migrate && cross-env NODE_ENV=staging jest -f . --runInBand --detectOpenHandles --forceExit --all && cross-env NODE_ENV=staging npm run clean-up",
     "clean-up": "node test-cleanup",
     "lint": "eslint .",
     "migrate": "sequelize-cli db:migrate"
@@ -23,6 +23,7 @@
     "i18next": "^22.4.12",
     "i18next-fs-backend": "^2.1.1",
     "i18next-http-middleware": "^3.3.0",
+    "multer": "^1.4.5-lts.1",
     "nodemailer": "^6.9.1",
     "pg": "^8.10.0",
     "pg-hstore": "^2.3.4",
@@ -78,6 +79,9 @@
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
       "<rootDir>/config/"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/test-setup.js"
     ]
   }
 }

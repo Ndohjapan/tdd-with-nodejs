@@ -1,6 +1,9 @@
 const NotFoundException = require('../error/NotFoundException');
 const User = require('../user/User');
 const Hoax = require('./Hoax');
+const FileService = require('../file/FileService');
+const FileAttachment = require('../file/FileAttachment');
+const ForbiddenException = require('../error/ForbiddenException');
 
 const save = async (body, user) => {
   const hoax = {
@@ -8,7 +11,11 @@ const save = async (body, user) => {
     timestamp: Date.now(),
     userId: user.id,
   };
-  await Hoax.create(hoax);
+  const { id } = await Hoax.create(hoax);
+
+  if (body.fileAttachment) {
+    await FileService.associateFileToHoax(body.fileAttachment, id);
+  }
 };
 
 const getHoaxes = async (page, size = 10, userId) => {
@@ -30,6 +37,11 @@ const getHoaxes = async (page, size = 10, userId) => {
         attributes: ['id', 'username', 'email', 'image'],
         where,
       },
+      {
+        model: FileAttachment,
+        as: 'fileAttachment',
+        attributes: ['filename', 'fileType'],
+      },
     ],
     order: [['id', 'DESC']],
     limit: size,
@@ -43,4 +55,23 @@ const getHoaxes = async (page, size = 10, userId) => {
   };
 };
 
-module.exports = { save, getHoaxes };
+const deleteHoax = async (hoaxId, userId) => {
+  const hoaxToBeDeleted = await Hoax.findOne({
+    where: { id: hoaxId, userId },
+    include: { model: FileAttachment },
+  });
+
+  if (!hoaxToBeDeleted) {
+    throw new ForbiddenException('unauthorized_hoax_delete');
+  }
+
+  const hoaxJSON = hoaxToBeDeleted.get({ plain: true });
+
+  if (hoaxJSON.fileAttachment !== null) {
+    await FileService.deleteAttachments(hoaxJSON.fileAttachment.filename)
+  }
+
+  await hoaxToBeDeleted.destroy();
+};
+
+module.exports = { save, getHoaxes, deleteHoax };
