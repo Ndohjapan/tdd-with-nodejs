@@ -5,7 +5,6 @@ const fileType = require('file-type');
 const { randomString } = require('../shared/generator');
 const FileAttachment = require('./FileAttachment');
 const Sequelize = require('sequelize');
-const Hoax = require('../hoax/Hoax');
 
 const { uploadDir, profileDir, attachmentDir } = config;
 const profileFolder = path.join('.', uploadDir, profileDir);
